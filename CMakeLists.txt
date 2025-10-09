@@ -10,7 +10,7 @@ if (WIN32)
     set(CUSTOM_COMPILE_FLAGS "${CUSTOM_COMPILE_FLAGS} /MT")
 elseif(LINUX)
 else()
-    message(FATAL_ERROR "Unsupported OS")
+    message(STATUS "OS maybe unsupported")
 endif()
 ################### CUSTOM PACKAGES ###################
 # add more packages as required
