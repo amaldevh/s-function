@@ -32,7 +32,7 @@ S-functions (System-functions) provide a powerful mechanism to extend Simulink w
 ├── cmake/
 │   └── FindMatlab.cmake               # MATLAB auto-detection module
 ├── include/
-│   └── optical_flow_uav_velocity.hpp  # Custom class headers (Doxygen documented)
+│   └── optical_flow_velocity.hpp  # Custom class headers (Doxygen documented)
 ├── src/
 │   ├── s_function.cpp                 # S-function implementation (fully documented)
 │   └── optical_flow_velocity.cpp      # Custom class implementation
@@ -97,7 +97,7 @@ cmake .. -DMATLAB_ROOT=/usr/local/MATLAB/R2023b
 1. Copy the generated MEX file from `build/` to your Simulink model directory
 2. Open your Simulink model
 3. Add an **S-Function** block from the Simulink library
-4. Set the **S-function name** to `matlab_simulink_s_function`
+4. Set the **S-function name** to `s_function`
 5. Configure the **S-function parameters**:
    - P1: Camera focal length (meters)
    - P2: Sensor height (meters)
@@ -130,7 +130,7 @@ public:
 
 ### Step 2: Configure Memory Management
 
-Choose one of two memory management strategies in `matlab_simulink_s_function.cpp`:
+Choose one of two memory management strategies in `s_function.cpp`:
 
 **Option A: Persistent Memory** (Recommended)
 - Better for complex objects
@@ -153,7 +153,7 @@ Choose one of two memory management strategies in `matlab_simulink_s_function.cp
 
 ### Step 3: Implement S-Function Callbacks
 
-All callbacks are documented in `src/matlab_simulink_s_function.cpp`. Key functions:
+All callbacks are documented in `src/s_function.cpp`. Key functions:
 
 #### `mdlInitializeSizes()`
 Configure ports and parameters:
@@ -228,8 +228,7 @@ For Simulink Coder code generation:
 1. Open **Model Configuration Parameters** in Simulink
 2. Navigate to **Code Generation → Custom Code**
 3. Add the contents of the generated files to the appropriate fields:
-   - **Include directories**: Contents of `include_directories.txt`
-   - **Library search path**: Contents of `link_directories.txt`
+   - **Include directories**: Contents of `include_directories.txt` and `link_directories.txt`
    - **Libraries**: Contents of `link_libraries.txt`
    - **Source files**: Contents of `source_files.txt`
 4. Generate code as usual
