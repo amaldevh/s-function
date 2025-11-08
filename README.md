@@ -61,7 +61,7 @@ S-functions (System-functions) provide a powerful mechanism to extend Simulink w
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/amaldevh/s-function.git
 cd s-function
 
 # Create build directory
@@ -108,6 +108,26 @@ cmake .. -DMATLAB_ROOT=/usr/local/MATLAB/R2023b
 6. Connect inputs and run the simulation
 
 See `test_s_function.slx` for a complete example.
+
+### 3. Building Example in Windows
+1. Install OpenCV, for example the precompiled binaries from sourceforge at
+[OpenCV Compiled library Sourceforge](https://sourceforge.net/projects/opencvlibrary/files/4.11.0)
+
+2. Install the MinGW-64 C/C++ toolbox from Matlab file exchange at
+ [MingW-64](https://www.mathworks.com/matlabcentral/fileexchange/52848-matlab-support-for-mingw-w64-c-c-compile)
+3. 
+```powershell
+# Extract the OpenCV installation
+# Clone the repository
+git clone https://github.com/amaldevh/s-function.git
+cd s-function
+
+# Create build directory
+mkdir build && cd build
+
+# Configure and build (MATLAB auto-detected via FindMatlab.cmake)
+cmake .. -DCMAKE_PREFIX_PATH="\path\to\opencv\build\dir"
+```
 
 ## Customization Guide
 
