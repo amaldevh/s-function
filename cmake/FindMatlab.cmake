@@ -54,9 +54,32 @@ if(WIN32)
     list(APPEND _MATLAB_SEARCH_PATHS
         "C:/Program Files/MATLAB"
         "C:/Program Files (x86)/MATLAB"
-        "$ENV{ProgramFiles}/MATLAB"
-        "$ENV{ProgramFiles(x86)}/MATLAB"
     )
+
+    # Add environment variable paths (handle special characters in variable names)
+    if(DEFINED ENV{ProgramFiles})
+        list(APPEND _MATLAB_SEARCH_PATHS "$ENV{ProgramFiles}/MATLAB")
+    endif()
+
+    # Handle ProgramFiles(x86) - CMake needs special syntax for parentheses
+    file(TO_CMAKE_PATH "$ENV{ProgramW6432}" _PROGRAM_FILES_64)
+    if(_PROGRAM_FILES_64)
+        list(APPEND _MATLAB_SEARCH_PATHS "${_PROGRAM_FILES_64}/MATLAB")
+    endif()
+
+    # Alternative method for x86 program files using registry-style path
+    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+        # 64-bit CMake, add both 64-bit and 32-bit paths
+        file(TO_CMAKE_PATH "$ENV{ProgramW6432}" _PF64)
+        if(_PF64)
+            list(APPEND _MATLAB_SEARCH_PATHS "${_PF64}/MATLAB")
+        endif()
+        # On 64-bit Windows, ProgramFiles points to x86 location when run from 32-bit process
+        set(_PFx86 "C:/Program Files (x86)")
+        if(EXISTS "${_PFx86}")
+            list(APPEND _MATLAB_SEARCH_PATHS "${_PFx86}/MATLAB")
+        endif()
+    endif()
 
     # Check for MATLAB installations in registry (if available)
     set(_MATLAB_VERSIONS R2024b R2024a R2023b R2023a R2022b R2022a R2021b R2021a R2020b R2020a)
