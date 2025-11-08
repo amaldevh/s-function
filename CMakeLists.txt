@@ -44,9 +44,11 @@ endif()
 set(MEX_COMPILER "${MATLAB_MEX_COMPILER}")
 
 # Platform-specific compiler flags
+# Note: MEX-specific flags are handled in the build section below
 set(CUSTOM_COMPILE_FLAGS "")
 if(WIN32)
-    set(CUSTOM_COMPILE_FLAGS "${CUSTOM_COMPILE_FLAGS} /MT")
+    # Windows: /MT flag is handled via COMPFLAGS in build section
+    # Don't add it here to avoid path parsing issues
 elseif(UNIX AND NOT APPLE)
     # Linux-specific flags can be added here if needed
 elseif(APPLE)
@@ -231,11 +233,11 @@ endforeach()
 
 # Platform-specific optimization flags
 if(WIN32)
-    # Windows: Use COMPFLAGS for MSVC
-    set(OPTIMIZATION_FLAGS "COMPFLAGS=\"/O2\"")
+    # Windows: Use COMPFLAGS for MSVC with /O2 optimization and /MT static runtime
+    set(OPTIMIZATION_FLAGS "COMPFLAGS=/O2 /MT")
 else()
     # Unix/Linux/macOS: Use CFLAGS with -O3
-    set(OPTIMIZATION_FLAGS "CFLAGS='$CFLAGS -O3'")
+    set(OPTIMIZATION_FLAGS "CFLAGS='\$CFLAGS -O3'")
 endif()
 
 set(BUILD_FLAGS "-v ${OPTIMIZATION_FLAGS} ${SRC_FLAGS} ${CUSTOM_COMPILE_FLAGS} ${INCLUDE_FLAGS} ${LIB_FLAGS}")
