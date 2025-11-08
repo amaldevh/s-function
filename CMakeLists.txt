@@ -228,7 +228,17 @@ endforeach()
 ################################################################################
 # Compile MEX S-Function
 ################################################################################
-set(BUILD_FLAGS "-v CFLAGS='$CFLAGS -O3' ${SRC_FLAGS} ${CUSTOM_COMPILE_FLAGS} ${INCLUDE_FLAGS} ${LIB_FLAGS}")
+
+# Platform-specific optimization flags
+if(WIN32)
+    # Windows: Use COMPFLAGS for MSVC
+    set(OPTIMIZATION_FLAGS "COMPFLAGS=\"/O2\"")
+else()
+    # Unix/Linux/macOS: Use CFLAGS with -O3
+    set(OPTIMIZATION_FLAGS "CFLAGS='$CFLAGS -O3'")
+endif()
+
+set(BUILD_FLAGS "-v ${OPTIMIZATION_FLAGS} ${SRC_FLAGS} ${CUSTOM_COMPILE_FLAGS} ${INCLUDE_FLAGS} ${LIB_FLAGS}")
 
 message(STATUS "")
 message(STATUS "========================================================================")
@@ -239,12 +249,16 @@ message(STATUS "Build flags: ${BUILD_FLAGS}")
 message(STATUS "")
 
 if(WIN32)
+    # On Windows, execute MEX directly without shell wrapping
+    # Separate arguments into a list for proper quoting
+    separate_arguments(BUILD_FLAGS_LIST WINDOWS_COMMAND ${BUILD_FLAGS})
     execute_process(
-        COMMAND powershell & "${MEX_COMPILER} ${BUILD_FLAGS}"
+        COMMAND "${MEX_COMPILER}" ${BUILD_FLAGS_LIST}
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         RESULT_VARIABLE MEX_RESULT
     )
 else()
+    # On Unix, use shell to handle complex quoting
     execute_process(
         COMMAND bash -c "${MEX_COMPILER} ${BUILD_FLAGS}"
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
