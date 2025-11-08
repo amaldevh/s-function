@@ -1,5 +1,5 @@
 /**
- * @file matlab_simulink_s_function.cpp
+ * @file s_function.cpp
  * @brief MATLAB/Simulink S-Function for optical flow velocity estimation
  *
  * This S-Function integrates the OpticalFlowTracking class with Simulink,
