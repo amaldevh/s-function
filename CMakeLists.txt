@@ -231,36 +231,54 @@ endforeach()
 # Compile MEX S-Function
 ################################################################################
 
-# Platform-specific optimization flags
-if(WIN32)
-    # Windows: Use COMPFLAGS for MSVC with /O2 optimization and /MT static runtime
-    set(OPTIMIZATION_FLAGS "COMPFLAGS=\"$COMPFLAGS /O2 /MT\"")
-else()
-    # Unix/Linux/macOS: Use CFLAGS with -O3
-    set(OPTIMIZATION_FLAGS "CFLAGS='\$CFLAGS -O3'")
-endif()
-
-set(BUILD_FLAGS "-v ${OPTIMIZATION_FLAGS} ${SRC_FLAGS} ${CUSTOM_COMPILE_FLAGS} ${INCLUDE_FLAGS} ${LIB_FLAGS}")
-
 message(STATUS "")
 message(STATUS "========================================================================")
 message(STATUS "Compiling S-Function MEX file...")
 message(STATUS "========================================================================")
 message(STATUS "MEX Compiler: ${MEX_COMPILER}")
-message(STATUS "Build flags: ${BUILD_FLAGS}")
-message(STATUS "")
 
 if(WIN32)
-    # On Windows, execute MEX directly without shell wrapping
-    # Separate arguments into a list for proper quoting
-    separate_arguments(BUILD_FLAGS_LIST WINDOWS_COMMAND ${BUILD_FLAGS})
+    # On Windows, build arguments as a list for proper handling
+    set(MEX_ARGS -v)
+
+    # Add optimization flags for MSVC
+    list(APPEND MEX_ARGS "COMPFLAGS=$COMPFLAGS /O2 /MT")
+
+    # Add source files
+    separate_arguments(SRC_LIST WINDOWS_COMMAND ${SRC_FLAGS})
+    list(APPEND MEX_ARGS ${SRC_LIST})
+
+    # Add include directories
+    separate_arguments(INCLUDE_LIST WINDOWS_COMMAND ${INCLUDE_FLAGS})
+    list(APPEND MEX_ARGS ${INCLUDE_LIST})
+
+    # Add library flags
+    separate_arguments(LIB_LIST WINDOWS_COMMAND ${LIB_FLAGS})
+    list(APPEND MEX_ARGS ${LIB_LIST})
+
+    message(STATUS "Build command: ${MEX_COMPILER} ${MEX_ARGS}")
+    message(STATUS "")
+
     execute_process(
-        COMMAND "${MEX_COMPILER}" ${BUILD_FLAGS_LIST}
+        COMMAND "${MEX_COMPILER}" ${MEX_ARGS}
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         RESULT_VARIABLE MEX_RESULT
+        OUTPUT_VARIABLE MEX_OUTPUT
+        ERROR_VARIABLE MEX_ERROR
     )
+
+    # Show output on failure
+    if(NOT MEX_RESULT EQUAL "0")
+        message(STATUS "MEX Output: ${MEX_OUTPUT}")
+        message(STATUS "MEX Error: ${MEX_ERROR}")
+    endif()
 else()
     # On Unix, use shell to handle complex quoting
+    set(BUILD_FLAGS "-v CFLAGS='\$CFLAGS -O3' ${SRC_FLAGS} ${CUSTOM_COMPILE_FLAGS} ${INCLUDE_FLAGS} ${LIB_FLAGS}")
+
+    message(STATUS "Build flags: ${BUILD_FLAGS}")
+    message(STATUS "")
+
     execute_process(
         COMMAND bash -c "${MEX_COMPILER} ${BUILD_FLAGS}"
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
