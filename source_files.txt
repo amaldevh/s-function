@@ -1,1 +1,1 @@
-/home/sdcnlab/Desktop/matlab-simulink-s-function/src/matlab_simulink_s_function.cpp /home/sdcnlab/Desktop/matlab-simulink-s-function/src/optical_flow_uav_velocity.cpp 
+/home/sdcnlab/Desktop/s-function/src/s_function.cpp /home/sdcnlab/Desktop/s-function/src/optical_flow_velocity.cpp 
