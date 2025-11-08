@@ -115,9 +115,19 @@ See `test_s_function.slx` for a complete example.
 
 2. Install the MinGW-64 C/C++ toolbox from Matlab file exchange at
  [MingW-64](https://www.mathworks.com/matlabcentral/fileexchange/52848-matlab-support-for-mingw-w64-c-c-compile)
-3. 
+
+3. Find Mingw-64 path by executing following command in Matlab window
+   ```matlab
+   %% Find the value of MW_MINGW64_LOC set by matlab
+   mingw_path = getenv('MW_MINGW64_LOC')
+   ```
+5. Open Powershell and execute 
 ```powershell
 # Extract the OpenCV installation
+
+# Set the MW_MINGW64_LOC env var
+$env:MW_MINGW64_LOC = "mingw_path"
+
 # Clone the repository
 git clone https://github.com/amaldevh/s-function.git
 cd s-function
