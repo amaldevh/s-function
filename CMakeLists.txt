@@ -238,27 +238,61 @@ message(STATUS "================================================================
 message(STATUS "MEX Compiler: ${MEX_COMPILER}")
 
 if(WIN32)
-    # On Windows, build arguments as a list for proper handling
-    set(MEX_ARGS -v)
+   # --- Begin improved MEX invocation block ---
 
-    # Add optimization flags for MSVC
+    # Start an empty argument list and add verbose flag
+    set(MEX_ARGS)
+    list(APPEND MEX_ARGS -v)
+
+    # Add optimization flags for MSVC as a single argument
     list(APPEND MEX_ARGS "COMPFLAGS=$COMPFLAGS /O2 /MT")
 
-    # Add source files
-    separate_arguments(SRC_LIST WINDOWS_COMMAND ${SRC_FLAGS})
-    list(APPEND MEX_ARGS ${SRC_LIST})
+    # Split user-provided SRC_FLAGS into individual items and append
+    # (SRC_FLAGS should be a semicolon-separated CMake list or a string with spaces)
+    separate_arguments(SRC_LIST WINDOWS_COMMAND "${SRC_FLAGS}")
+    foreach(s IN LISTS SRC_LIST)
+        # ensure we don't accidentally keep stray semicolons inside items
+        string(REPLACE ";" "" s "${s}")
+        list(APPEND MEX_ARGS "${s}")
+    endforeach()
 
-    # Add include directories
-    separate_arguments(INCLUDE_LIST WINDOWS_COMMAND ${INCLUDE_FLAGS})
-    list(APPEND MEX_ARGS ${INCLUDE_LIST})
+    # Process include flags: accept items either like "C:/path/to/inc" or "-Ipath"
+    # and append as -I"path with spaces" if needed for PowerShell-friendly output
+    separate_arguments(INCLUDE_LIST WINDOWS_COMMAND "${INCLUDE_FLAGS}")
+    foreach(inc IN LISTS INCLUDE_LIST)
+        # remove any leading "-I" to normalise
+        string(REGEX REPLACE "^(-I)?" "" incpath "${inc}")
+        if(incpath MATCHES " ")
+            # include path contains spaces — keep quotes for display/copy-paste
+            list(APPEND MEX_ARGS "-I${incpath}")
+            # We'll add quotes in the printed PowerShell command below; do not include literal quotes
+        else()
+            list(APPEND MEX_ARGS "-I${incpath}")
+        endif()
+    endforeach()
 
-    # Add library flags
-    separate_arguments(LIB_LIST WINDOWS_COMMAND ${LIB_FLAGS})
-    list(APPEND MEX_ARGS ${LIB_LIST})
+    # Library flags: just split and append (assumes items like -lopencv_core or path/to.lib)
+    separate_arguments(LIB_LIST WINDOWS_COMMAND "${LIB_FLAGS}")
+    foreach(lib IN LISTS LIB_LIST)
+        string(REPLACE ";" "" lib "${lib}")
+        list(APPEND MEX_ARGS "${lib}")
+    endforeach()
 
-    message(STATUS "Build command: ${MEX_COMPILER} ${MEX_ARGS}")
-    message(STATUS "")
+    # --- Print a PowerShell-ready command for copy/paste ---
+    # Join the list into a single command-line string for display.
+    # For PowerShell copy/paste we will: & "mex.bat" --% <args...>
+    # We also ensure that any -I arguments whose paths contain spaces are wrapped in quotes
+    list(JOIN MEX_ARGS " " MEX_CMDLINE_RAW)
 
+    # Create a display-friendly version where include paths containing spaces are quoted
+    # (We quote occurrences of -I followed by a path that has spaces.)
+    string(REGEX REPLACE "-I([^ ]+ [^ ]+)" "-I\"\\1\"" MEX_CMDLINE_POWERSHELL "${MEX_CMDLINE_RAW}")
+
+    message(STATUS "PowerShell copy/paste command (use in PowerShell):")
+    message(STATUS "& \"${MEX_COMPILER}\" --% ${MEX_CMDLINE_POWERSHELL}")
+    message(STATUS "")  # blank line for readability
+
+    # --- Execute the mex command directly (CMake will pass each list element as an argv) ---
     execute_process(
         COMMAND "${MEX_COMPILER}" ${MEX_ARGS}
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
@@ -267,11 +301,13 @@ if(WIN32)
         ERROR_VARIABLE MEX_ERROR
     )
 
-    # Show output on failure
-    if(NOT MEX_RESULT EQUAL "0")
-        message(STATUS "MEX Output: ${MEX_OUTPUT}")
-        message(STATUS "MEX Error: ${MEX_ERROR}")
+    # Optionally show verbose output of mex when debugging
+    if(NOT MEX_RESULT EQUAL 0)
+        message(WARNING "MEX failed with code ${MEX_RESULT}")
+        message(WARNING "MEX stdout: ${MEX_OUTPUT}")
+        message(WARNING "MEX stderr: ${MEX_ERROR}")
     endif()
+
 else()
     # On Unix, use shell to handle complex quoting
     set(BUILD_FLAGS "-v CFLAGS='\$CFLAGS -O3' ${SRC_FLAGS} ${CUSTOM_COMPILE_FLAGS} ${INCLUDE_FLAGS} ${LIB_FLAGS}")
