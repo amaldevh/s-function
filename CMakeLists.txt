@@ -234,7 +234,7 @@ endforeach()
 # Platform-specific optimization flags
 if(WIN32)
     # Windows: Use COMPFLAGS for MSVC with /O2 optimization and /MT static runtime
-    set(OPTIMIZATION_FLAGS "COMPFLAGS=/O2 /MT")
+    set(OPTIMIZATION_FLAGS "COMPFLAGS=\"$COMPFLAGS /O2 /MT\"")
 else()
     # Unix/Linux/macOS: Use CFLAGS with -O3
     set(OPTIMIZATION_FLAGS "CFLAGS='\$CFLAGS -O3'")
